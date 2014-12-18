@@ -1,0 +1,33 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ns0: <http://purl.org/dc/terms/> .
+@prefix ns1: <http://rdfs.org/sioc/ns#> .
+@prefix ns2: <http://www.w3.org/2007/05/powder-s#> .
+@prefix ns3: <http://xmlns.com/foaf/0.1/> .
+
+<http://vocabulary.turnguard.com> ns0:language "en" ;
+                                  ns0:license <http://creativecommons.org/licenses/by-sa/3.0/> ;
+                                  ns0:title "Vocabulary"@en ;
+                                  ns0:creator <http://www.turnguard.com/turnguard> ;
+                                  ns1:parent_of <http://vocabulary.turnguard.com/taxon> ,
+                                                <http://vocabulary.turnguard.com/opendirectory> ;
+                                  ns1:has_space <http://turnguard.com> ;
+                                  ns0:publisher <http://www.turnguard.com/turnguard> ;
+                                  rdf:type ns1:Container .
+
+<http://vocabulary.turnguard.com/opendirectory> ns0:license <http://creativecommons.org/licenses/by-sa/3.0/> ;
+                                                ns0:publisher <http://www.turnguard.com/turnguard> ;
+                                                rdf:type ns1:Container ,
+                                                         ns2:Dataset ;
+                                                ns0:creator <http://www.turnguard.com/turnguard> ;
+                                                ns0:title "OpenDirectory"@en ;
+                                                ns1:has_parent <http://vocabulary.turnguard.com> ;
+                                                ns0:language "en" .
+
+<http://vocabulary.turnguard.com/taxon> ns0:language "en" ;
+                                        ns0:creator <http://www.turnguard.com/turnguard> ;
+                                        rdf:type ns1:Container ,
+                                                 ns2:Dataset ;
+                                        ns1:has_parent <http://vocabulary.turnguard.com> ;
+                                        ns0:publisher <http://www.turnguard.com/turnguard> ;
+                                        ns0:title "Taxonomy"@en ;
+                                        ns0:license <http://creativecommons.org/licenses/by-sa/3.0/> .
