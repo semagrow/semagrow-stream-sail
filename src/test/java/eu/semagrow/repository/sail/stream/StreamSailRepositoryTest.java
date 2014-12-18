@@ -48,8 +48,8 @@ public class StreamSailRepositoryTest {
 
     @Test
     public void testSequential() throws RepositoryException, MalformedQueryException, QueryEvaluationException, IOException, RDFParseException{
-        StreamSail fedSail = new StreamSailImpl();
-        StreamSailRepository streamSailRepo = new StreamSailRepositoryImpl(fedSail);
+        StreamSail streamSail = new StreamSailImpl();
+        StreamSailRepository streamSailRepo = new StreamSailRepositoryImpl(streamSail);
                              streamSailRepo.initialize();
                                  
         StreamSailRepositoryConnection streamSailRepoCon = streamSailRepo.getStreamSailRepositoryConnection();
@@ -64,8 +64,8 @@ public class StreamSailRepositoryTest {
     
     //@Test
     public void testStreaming() throws RepositoryException, MalformedQueryException, QueryEvaluationException, IOException, RDFParseException {
-        StreamSail fedSail = new StreamSailImpl();
-        StreamSailRepository streamSailRepo = new StreamSailRepositoryImpl(fedSail);
+        StreamSail streamSail = new StreamSailImpl();
+        StreamSailRepository streamSailRepo = new StreamSailRepositoryImpl(streamSail);
                              streamSailRepo.initialize();
 
         StreamSailRepositoryConnection streamSailRepoCon = streamSailRepo.getStreamSailRepositoryConnection();        
@@ -81,8 +81,8 @@ public class StreamSailRepositoryTest {
     
     @Test
     public void test3() throws RepositoryException, MalformedQueryException, QueryEvaluationException, IOException, RDFParseException {
-        StreamSail fedSail = new StreamSailImpl();
-        StreamSailRepository streamSailRepo = new StreamSailRepositoryImpl(fedSail);
+        StreamSail streamSail = new StreamSailImpl();
+        StreamSailRepository streamSailRepo = new StreamSailRepositoryImpl(streamSail);
                              streamSailRepo.initialize();
                                  
         StreamSailRepositoryConnection streamSailRepoCon = streamSailRepo.getStreamSailRepositoryConnection(); 
