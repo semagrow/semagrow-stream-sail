@@ -22,7 +22,7 @@ public class StreamSailRepositoryConnectionImpl extends SailRepositoryConnection
     }
 
     @Override
-    public StreamSailTupleQuery prepareFederationTupleQuery(QueryLanguage ql, String queryString, String baseURI) throws MalformedQueryException {
+    public StreamSailTupleQuery prepareStreamTupleQuery(QueryLanguage ql, String queryString, String baseURI) throws MalformedQueryException {
         ParsedTupleQuery parsedQuery = QueryParserUtil.parseTupleQuery(ql, queryString, baseURI);        
         return new StreamSailTupleQueryImpl(parsedQuery, this);        
     }

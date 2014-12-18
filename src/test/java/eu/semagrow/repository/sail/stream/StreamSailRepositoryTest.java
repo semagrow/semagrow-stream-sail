@@ -49,15 +49,15 @@ public class StreamSailRepositoryTest {
     @Test
     public void testSequential() throws RepositoryException, MalformedQueryException, QueryEvaluationException, IOException, RDFParseException{
         StreamSail fedSail = new StreamSailImpl();
-        StreamSailRepository fedSailRepo = new StreamSailRepositoryImpl(fedSail);
-                             fedSailRepo.initialize();
+        StreamSailRepository streamSailRepo = new StreamSailRepositoryImpl(fedSail);
+                             streamSailRepo.initialize();
                                  
-        StreamSailRepositoryConnection fedSailRepoCon = fedSailRepo.getStreamSailRepositoryConnection();
-                                       fedSailRepoCon.add(StreamSailConnectionImpl.class.getResourceAsStream("/testdata.ttl"), "", RDFFormat.TURTLE);
+        StreamSailRepositoryConnection streamSailRepoCon = streamSailRepo.getStreamSailRepositoryConnection();
+                                       streamSailRepoCon.add(StreamSailConnectionImpl.class.getResourceAsStream("/testdata.ttl"), "", RDFFormat.TURTLE);
         long start = System.currentTimeMillis();        
-        TupleQueryResult fedSailTupleQueryResult = fedSailRepoCon.prepareTupleQuery(QueryLanguage.SPARQL, "SELECT ?s ?o ?a ?b WHERE { ?s <http://rdfs.org/sioc/ns#parent_of> ?o . ?o ?a ?b }",null).evaluate();
-        while(fedSailTupleQueryResult.hasNext()){
-            System.out.println(fedSailTupleQueryResult.next());
+        TupleQueryResult streamSailTupleQueryResult = streamSailRepoCon.prepareTupleQuery(QueryLanguage.SPARQL, "SELECT ?s ?o ?a ?b WHERE { ?s <http://rdfs.org/sioc/ns#parent_of> ?o . ?o ?a ?b }",null).evaluate();
+        while(streamSailTupleQueryResult.hasNext()){
+            System.out.println(streamSailTupleQueryResult.next());
         }
         System.out.println(System.currentTimeMillis()-start);
     }
@@ -65,14 +65,14 @@ public class StreamSailRepositoryTest {
     //@Test
     public void testStreaming() throws RepositoryException, MalformedQueryException, QueryEvaluationException, IOException, RDFParseException {
         StreamSail fedSail = new StreamSailImpl();
-        StreamSailRepository fedSailRepo = new StreamSailRepositoryImpl(fedSail);
-                             fedSailRepo.initialize();
+        StreamSailRepository streamSailRepo = new StreamSailRepositoryImpl(fedSail);
+                             streamSailRepo.initialize();
 
-        StreamSailRepositoryConnection fedSailRepoCon = fedSailRepo.getStreamSailRepositoryConnection();        
-                                       fedSailRepoCon.add(StreamSailConnectionImpl.class.getResourceAsStream("/testdata.ttl"), "", RDFFormat.TURTLE);            
+        StreamSailRepositoryConnection streamSailRepoCon = streamSailRepo.getStreamSailRepositoryConnection();        
+                                       streamSailRepoCon.add(StreamSailConnectionImpl.class.getResourceAsStream("/testdata.ttl"), "", RDFFormat.TURTLE);            
         long start = System.currentTimeMillis();        
-        StreamSailTupleQuery fedSailTupleQuery = fedSailRepoCon.prepareFederationTupleQuery(QueryLanguage.SPARQL, "SELECT ?s WHERE { ?s ?p ?o }",null);
-                                 fedSailTupleQuery.streamEvaluation().forEach(
+        StreamSailTupleQuery streamSailTupleQuery = streamSailRepoCon.prepareStreamTupleQuery(QueryLanguage.SPARQL, "SELECT ?s WHERE { ?s ?p ?o }",null);
+                             streamSailTupleQuery.streamEvaluation().forEach(
                                          (b)->{                                             
                                              System.out.println((System.currentTimeMillis()-start)+" "+b);
                                          }
@@ -82,14 +82,14 @@ public class StreamSailRepositoryTest {
     @Test
     public void test3() throws RepositoryException, MalformedQueryException, QueryEvaluationException, IOException, RDFParseException {
         StreamSail fedSail = new StreamSailImpl();
-        StreamSailRepository fedSailRepo = new StreamSailRepositoryImpl(fedSail);
-                                 fedSailRepo.initialize();
+        StreamSailRepository streamSailRepo = new StreamSailRepositoryImpl(fedSail);
+                             streamSailRepo.initialize();
                                  
-        StreamSailRepositoryConnection fedSailRepoCon = fedSailRepo.getStreamSailRepositoryConnection(); 
-                                       fedSailRepoCon.add(StreamSailConnectionImpl.class.getResourceAsStream("/testdata.ttl"), "", RDFFormat.TURTLE);    
+        StreamSailRepositoryConnection streamSailRepoCon = streamSailRepo.getStreamSailRepositoryConnection(); 
+                                       streamSailRepoCon.add(StreamSailConnectionImpl.class.getResourceAsStream("/testdata.ttl"), "", RDFFormat.TURTLE);    
         long start = System.currentTimeMillis();        
-        StreamSailTupleQuery fedSailTupleQuery = fedSailRepoCon.prepareFederationTupleQuery(QueryLanguage.SPARQL, "SELECT ?s ?o ?a ?b WHERE { ?s <http://rdfs.org/sioc/ns#parent_of> ?o . ?o ?a ?b }",null);
-                                 fedSailTupleQuery.streamEvaluation().forEach(
+        StreamSailTupleQuery streamSailTupleQuery = streamSailRepoCon.prepareStreamTupleQuery(QueryLanguage.SPARQL, "SELECT ?s ?o ?a ?b WHERE { ?s <http://rdfs.org/sioc/ns#parent_of> ?o . ?o ?a ?b }",null);
+                             streamSailTupleQuery.streamEvaluation().forEach(
                                          (b)->{                                             
                                              System.out.println(b);
                                          }
