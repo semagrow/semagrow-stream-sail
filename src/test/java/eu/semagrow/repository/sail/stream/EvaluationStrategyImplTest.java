@@ -77,7 +77,7 @@ public class EvaluationStrategyImplTest {
                             null
                     );   
             Assert.assertEquals("Must have 25 bindings", 25, streamSailTupleQuery.streamEvaluation().count());
-                    
+            //streamSailTupleQuery.streamEvaluation().forEach((b)->{ System.out.println(b);});            
         } finally {
             if(streamSailRepoCon!=null){
                 streamSailRepoCon.close();
@@ -299,4 +299,23 @@ public class EvaluationStrategyImplTest {
             }
         }        
     }      
+    @Test
+    public void simpleQueryWithUnion() throws RepositoryException, MalformedQueryException, QueryEvaluationException{
+        System.out.println("simpleQueryWithUnion");        
+        StreamSailRepositoryConnection streamSailRepoCon = null;
+        StreamSailTupleQuery streamSailTupleQuery;
+        try {
+            streamSailRepoCon = streamSailRepo.getStreamSailRepositoryConnection();
+            streamSailTupleQuery = streamSailRepoCon
+                    .prepareStreamTupleQuery(
+                            QueryLanguage.SPARQL, 
+                            "SELECT ?o WHERE { { ?s <http://rdfs.org/sioc/ns#parent_of> ?o } UNION { ?y <http://purl.org/dc/terms/publisher> ?o } }",null
+                    );    
+            Assert.assertEquals("Must have 5 bindingSets", 5, streamSailTupleQuery.streamEvaluation().count());            
+        } finally {
+            if(streamSailRepoCon!=null){
+                streamSailRepoCon.close();
+            }
+        }        
+    }    
 }

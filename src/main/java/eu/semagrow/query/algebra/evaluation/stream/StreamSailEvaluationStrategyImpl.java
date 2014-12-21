@@ -25,6 +25,7 @@ import org.openrdf.query.algebra.Slice;
 import org.openrdf.query.algebra.StatementPattern;
 import org.openrdf.query.algebra.SubQueryValueOperator;
 import org.openrdf.query.algebra.TupleExpr;
+import org.openrdf.query.algebra.Union;
 import org.openrdf.query.algebra.ValueExpr;
 import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 import org.openrdf.query.algebra.evaluation.ValueExprEvaluationException;
@@ -64,11 +65,20 @@ public class StreamSailEvaluationStrategyImpl extends EvaluationStrategyImpl imp
                 return stream((Extension) expr, bindings);
             } else if (expr instanceof Distinct) {
                 return stream((Distinct) expr, bindings);
+            } else if (expr instanceof Union) {
+                return stream((Union) expr, bindings);
             }
         } catch (SailException e) {
             throw new QueryEvaluationException(e);
         }
         return Stream.empty();
+    }
+
+    private Stream<BindingSet> stream(Union union, BindingSet bindings) throws QueryEvaluationException {        
+        return Stream.concat(
+                this.streamEvaluation(union.getLeftArg(), bindings),
+                this.streamEvaluation(union.getRightArg(), bindings)
+        );
     }
     
     private Stream<BindingSet> stream(Distinct distinct, BindingSet bindings) throws QueryEvaluationException {
