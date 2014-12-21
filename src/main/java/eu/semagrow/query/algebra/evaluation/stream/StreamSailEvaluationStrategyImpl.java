@@ -11,6 +11,9 @@ import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.algebra.AggregateOperator;
+import org.openrdf.query.algebra.Extension;
+import org.openrdf.query.algebra.ExtensionElem;
 import org.openrdf.query.algebra.Filter;
 import org.openrdf.query.algebra.Join;
 import org.openrdf.query.algebra.LeftJoin;
@@ -23,6 +26,7 @@ import org.openrdf.query.algebra.SubQueryValueOperator;
 import org.openrdf.query.algebra.TupleExpr;
 import org.openrdf.query.algebra.ValueExpr;
 import org.openrdf.query.algebra.evaluation.QueryBindingSet;
+import org.openrdf.query.algebra.evaluation.ValueExprEvaluationException;
 import org.openrdf.query.algebra.evaluation.impl.EvaluationStrategyImpl;
 import org.openrdf.sail.SailException;
 
@@ -55,31 +59,59 @@ public class StreamSailEvaluationStrategyImpl extends EvaluationStrategyImpl imp
                 return stream((Slice) expr, bindings);
             } else if (expr instanceof Filter) {
                 return stream((Filter) expr, bindings);
+            } else if (expr instanceof Extension) {
+                return stream((Extension) expr, bindings);
             }
         } catch (SailException e) {
             throw new QueryEvaluationException(e);
         }
-        return null;
+        return Stream.empty();
+    }
+
+    private Stream<BindingSet> stream(Extension extension, BindingSet bindings) throws QueryEvaluationException {
+        return this.streamEvaluation(extension.getArg(), bindings)
+                .parallel()
+                .map((b) -> {
+                    QueryBindingSet targetBindings = new QueryBindingSet(b);
+                    for (ExtensionElem extElem : extension.getElements()) {
+                        ValueExpr expr = extElem.getExpr();
+                        if (!(expr instanceof AggregateOperator)) {
+                            try {
+                                Value targetValue = this.evaluate(extElem.getExpr(), targetBindings);
+                                if (targetValue != null) {
+                                    targetBindings.setBinding(extElem.getName(), targetValue);
+                                }
+                            } catch (ValueExprEvaluationException e) {
+                            } catch (QueryEvaluationException e) {
+                            }
+                        }
+                    }
+                    return targetBindings;
+                });
     }
 
     private Stream<BindingSet> stream(Filter filter, BindingSet bindings) throws QueryEvaluationException {
         Set<String> scopeBindingNames = filter.getBindingNames();
-        return this.streamEvaluation(filter.getArg(), bindings)                
-                .filter((BindingSet b)->{
-                    QueryBindingSet scopeBindings = new QueryBindingSet(b); 
+        return this.streamEvaluation(filter.getArg(), bindings)
+                .parallel()
+                .filter((BindingSet b) -> {
+                    QueryBindingSet scopeBindings = new QueryBindingSet(b);
                     if (!isPartOfSubQuery(filter)) {
                         scopeBindings.retainAll(scopeBindingNames);
-                    }  
-                    try {                        
+                    }
+                    try {
                         return super.isTrue(filter.getCondition(), b);
-                    } catch(QueryEvaluationException e){ return false; }
+                    } catch (QueryEvaluationException e) {
+                        return false;
+                    }
                 });
-        
+
     }
 
     private Stream<BindingSet> stream(Projection projection, BindingSet bindings) throws QueryEvaluationException {
         return this
                 .streamEvaluation(projection.getArg(), bindings)
+                .parallel()
                 .map((bs) -> {
                     QueryBindingSet resultBindings = new QueryBindingSet(bindings);
                     for (ProjectionElem pe : projection.getProjectionElemList().getElements()) {
@@ -129,21 +161,23 @@ public class StreamSailEvaluationStrategyImpl extends EvaluationStrategyImpl imp
         Resource subj = (Resource) getVarValue(sp.getSubjectVar(), bindings);
         URI pred = (URI) getVarValue(sp.getPredicateVar(), bindings);
         Value obj = getVarValue(sp.getObjectVar(), bindings);
-        return this.sailCon.streamStatements(subj, pred, obj, true).map(
-                (s) -> {
-                    QueryBindingSet result = new QueryBindingSet(bindings);
-                    if (sp.getSubjectVar() != null && !result.hasBinding(sp.getSubjectVar().getName())) {
-                        result.addBinding(sp.getSubjectVar().getName(), s.getSubject());
-                    }
-                    if (sp.getPredicateVar() != null && !result.hasBinding(sp.getPredicateVar().getName())) {
-                        result.addBinding(sp.getPredicateVar().getName(), s.getPredicate());
-                    }
-                    if (sp.getObjectVar() != null && !result.hasBinding(sp.getObjectVar().getName())) {
-                        result.addBinding(sp.getObjectVar().getName(), s.getObject());
-                    }
-                    return result;
-                }
-        );
+        return this.sailCon.streamStatements(subj, pred, obj, true)
+                .parallel()
+                .map(
+                        (s) -> {
+                            QueryBindingSet result = new QueryBindingSet(bindings);
+                            if (sp.getSubjectVar() != null && !result.hasBinding(sp.getSubjectVar().getName())) {
+                                result.addBinding(sp.getSubjectVar().getName(), s.getSubject());
+                            }
+                            if (sp.getPredicateVar() != null && !result.hasBinding(sp.getPredicateVar().getName())) {
+                                result.addBinding(sp.getPredicateVar().getName(), s.getPredicate());
+                            }
+                            if (sp.getObjectVar() != null && !result.hasBinding(sp.getObjectVar().getName())) {
+                                result.addBinding(sp.getObjectVar().getName(), s.getObject());
+                            }
+                            return result;
+                        }
+                );
     }
 
     @Override

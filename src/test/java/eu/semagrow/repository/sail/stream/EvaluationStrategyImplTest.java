@@ -75,6 +75,9 @@ public class EvaluationStrategyImplTest {
                             "SELECT ?s ?p ?o WHERE { ?s ?p ?o }",
                             null
                     );            
+            streamSailTupleQuery.streamEvaluation().forEach((b)->{                                             
+                                             System.out.println(b);
+                                         });             
             System.out.println(streamSailTupleQuery);
         } finally {
             if(streamSailRepoCon!=null){
@@ -200,7 +203,31 @@ public class EvaluationStrategyImplTest {
                 streamSailRepoCon.close();
             }
         }        
-    }    
+    }  
+    
+    @Test
+    public void simpleQueryWithSelectAs() throws RepositoryException, MalformedQueryException, QueryEvaluationException{
+        System.out.println("simpleQueryWithSelectAs");
+        StreamSailRepositoryConnection streamSailRepoCon = null;
+        StreamSailTupleQuery streamSailTupleQuery;
+        try {
+            streamSailRepoCon = streamSailRepo.getStreamSailRepositoryConnection();
+            streamSailTupleQuery = streamSailRepoCon
+                    .prepareStreamTupleQuery(
+                            QueryLanguage.SPARQL, 
+                            "SELECT ?s ?p (?o AS ?XX) WHERE { ?s ?p ?o }",
+                            null
+                    );
+            streamSailTupleQuery.streamEvaluation().forEach((b)->{                                             
+                                             System.out.println(b);
+                                         });           
+            System.out.println(streamSailTupleQuery);
+        } finally {
+            if(streamSailRepoCon!=null){
+                streamSailRepoCon.close();
+            }
+        }        
+    }      
     
     @Test
     public void simpleQueryWithJoin() throws RepositoryException, MalformedQueryException, QueryEvaluationException{
