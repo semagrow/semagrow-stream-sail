@@ -12,6 +12,7 @@ import org.openrdf.model.Value;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.algebra.AggregateOperator;
+import org.openrdf.query.algebra.Distinct;
 import org.openrdf.query.algebra.Extension;
 import org.openrdf.query.algebra.ExtensionElem;
 import org.openrdf.query.algebra.Filter;
@@ -61,13 +62,19 @@ public class StreamSailEvaluationStrategyImpl extends EvaluationStrategyImpl imp
                 return stream((Filter) expr, bindings);
             } else if (expr instanceof Extension) {
                 return stream((Extension) expr, bindings);
+            } else if (expr instanceof Distinct) {
+                return stream((Distinct) expr, bindings);
             }
         } catch (SailException e) {
             throw new QueryEvaluationException(e);
         }
         return Stream.empty();
     }
-
+    
+    private Stream<BindingSet> stream(Distinct distinct, BindingSet bindings) throws QueryEvaluationException {
+        return this.streamEvaluation(distinct.getArg(), bindings).distinct();
+    }
+    
     private Stream<BindingSet> stream(Extension extension, BindingSet bindings) throws QueryEvaluationException {
         return this.streamEvaluation(extension.getArg(), bindings)
                 .parallel()
