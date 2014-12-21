@@ -5,12 +5,8 @@ import eu.semagrow.query.algebra.evaluation.stream.StreamSailEvaluationStrategyI
 import eu.semagrow.iteration.stream.ListIteration;
 import eu.semagrow.sail.StreamSail;
 import info.aduna.iteration.CloseableIteration;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.openrdf.model.Namespace;
@@ -19,17 +15,10 @@ import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.model.impl.URIImpl;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.Dataset;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.rio.RDFFormat;
-import org.openrdf.rio.RDFHandlerException;
-import org.openrdf.rio.RDFParseException;
-import org.openrdf.rio.RDFParser;
-import org.openrdf.rio.Rio;
-import org.openrdf.rio.helpers.RDFHandlerBase;
 import org.openrdf.sail.SailException;
 import org.openrdf.sail.UnknownSailTransactionStateException;
 import org.openrdf.sail.UpdateContext;
@@ -40,7 +29,6 @@ import org.openrdf.sail.UpdateContext;
  */
 public class StreamSailConnectionImpl implements StreamSailConnection {
         
-    List<Statement> states = new ArrayList<>();
     
     private final StreamSailEvaluationStrategyImpl federationSailEvaluationStrategyImpl;
     private final StreamSail streamSail;
@@ -78,9 +66,9 @@ public class StreamSailConnectionImpl implements StreamSailConnection {
         }).limit(10);
         */
         if(subj==null && pred==null && obj==null){
-            return this.states.stream();
+            return this.streamSail.getStatements().stream();
         } else {
-            return this.states
+            return this.streamSail.getStatements()
                         .stream()
                         .filter(
                             (s)->(subj==null || subj.equals(s.getSubject())) &&
@@ -112,7 +100,7 @@ public class StreamSailConnectionImpl implements StreamSailConnection {
 
     @Override
     public long size(Resource... rsrcs) throws SailException {
-        return this.states.size();
+        return this.streamSail.getStatements().size();
     }
 
     @Override
@@ -134,12 +122,12 @@ public class StreamSailConnectionImpl implements StreamSailConnection {
 
     @Override
     public void addStatement(Resource rsrc, URI uri, Value value, Resource... rsrcs) throws SailException {
-        this.states.add(new StatementImpl(rsrc,uri,value));
+        this.streamSail.getStatements().add(new StatementImpl(rsrc,uri,value));
     }
 
     @Override
     public void removeStatements(Resource rsrc, URI uri, Value value, Resource... rsrcs) throws SailException {
-        this.states.remove(new StatementImpl(rsrc,uri,value));
+        this.streamSail.getStatements().remove(new StatementImpl(rsrc,uri,value));
     }
 
     @Override
@@ -160,7 +148,7 @@ public class StreamSailConnectionImpl implements StreamSailConnection {
 
     @Override
     public void clear(Resource... rsrcs) throws SailException {
-        this.states.clear();
+        this.streamSail.getStatements().clear();
     }
 
     @Override

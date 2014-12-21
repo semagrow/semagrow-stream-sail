@@ -4,19 +4,24 @@ import eu.semagrow.query.algebra.evaluation.StreamSailEvaluationStrategy;
 import eu.semagrow.query.algebra.evaluation.StreamSailTripleSource;
 import eu.semagrow.sail.StreamSailConnection;
 import info.aduna.iteration.CloseableIteration;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.openrdf.model.Resource;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.algebra.Filter;
 import org.openrdf.query.algebra.Join;
 import org.openrdf.query.algebra.LeftJoin;
 import org.openrdf.query.algebra.Projection;
 import org.openrdf.query.algebra.ProjectionElem;
+import org.openrdf.query.algebra.QueryModelNode;
 import org.openrdf.query.algebra.Slice;
 import org.openrdf.query.algebra.StatementPattern;
+import org.openrdf.query.algebra.SubQueryValueOperator;
 import org.openrdf.query.algebra.TupleExpr;
+import org.openrdf.query.algebra.ValueExpr;
 import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 import org.openrdf.query.algebra.evaluation.impl.EvaluationStrategyImpl;
 import org.openrdf.sail.SailException;
@@ -48,11 +53,28 @@ public class StreamSailEvaluationStrategyImpl extends EvaluationStrategyImpl imp
                 return stream((Join) expr, bindings);
             } else if (expr instanceof Slice) {
                 return stream((Slice) expr, bindings);
+            } else if (expr instanceof Filter) {
+                return stream((Filter) expr, bindings);
             }
         } catch (SailException e) {
             throw new QueryEvaluationException(e);
         }
         return null;
+    }
+
+    private Stream<BindingSet> stream(Filter filter, BindingSet bindings) throws QueryEvaluationException {
+        Set<String> scopeBindingNames = filter.getBindingNames();
+        return this.streamEvaluation(filter.getArg(), bindings)                
+                .filter((BindingSet b)->{
+                    QueryBindingSet scopeBindings = new QueryBindingSet(b); 
+                    if (!isPartOfSubQuery(filter)) {
+                        scopeBindings.retainAll(scopeBindingNames);
+                    }  
+                    try {                        
+                        return super.isTrue(filter.getCondition(), b);
+                    } catch(QueryEvaluationException e){ return false; }
+                });
+        
     }
 
     private Stream<BindingSet> stream(Projection projection, BindingSet bindings) throws QueryEvaluationException {
@@ -77,10 +99,10 @@ public class StreamSailEvaluationStrategyImpl extends EvaluationStrategyImpl imp
                 .flatMap((leftBindingSet) -> {
                     try {
                         return this.streamEvaluation(join.getRightArg(), leftBindingSet)
-                                   .map((rightBindingSet) -> {
-                                            ((QueryBindingSet) rightBindingSet).addAll(leftBindingSet);
-                                            return rightBindingSet;
-                                       });
+                        .map((rightBindingSet) -> {
+                            ((QueryBindingSet) rightBindingSet).addAll(leftBindingSet);
+                            return rightBindingSet;
+                        });
                     } catch (QueryEvaluationException qee) {
                         return Stream.empty();
                     }
@@ -93,13 +115,13 @@ public class StreamSailEvaluationStrategyImpl extends EvaluationStrategyImpl imp
                     .skip(slice.getOffset())
                     .limit(slice.getLimit());
         } else {
-            if(slice.getLimit()>0){
+            if (slice.getLimit() > 0) {
                 return this.streamEvaluation(slice.getArg(), bindings)
-                                    .limit(slice.getLimit());            
+                        .limit(slice.getLimit());
             } else {
-               return this.streamEvaluation(slice.getArg(), bindings)
-                                    .skip(slice.getOffset());
-            }            
+                return this.streamEvaluation(slice.getArg(), bindings)
+                        .skip(slice.getOffset());
+            }
         }
     }
 
@@ -134,5 +156,18 @@ public class StreamSailEvaluationStrategyImpl extends EvaluationStrategyImpl imp
     public CloseableIteration<BindingSet, QueryEvaluationException> evaluate(LeftJoin leftJoin, BindingSet bindings) throws QueryEvaluationException {
         System.out.println("evaluating leftjoin");
         return super.evaluate(leftJoin, bindings); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    /* UTILS */
+    private boolean isPartOfSubQuery(QueryModelNode node) {
+        if (node instanceof SubQueryValueOperator) {
+            return true;
+        }
+        QueryModelNode parent = node.getParentNode();
+        if (parent != null) {
+            return isPartOfSubQuery(parent);
+        } else {
+            return false;
+        }
     }
 }

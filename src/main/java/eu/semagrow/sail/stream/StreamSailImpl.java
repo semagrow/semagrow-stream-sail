@@ -3,8 +3,11 @@ package eu.semagrow.sail.stream;
 import eu.semagrow.sail.StreamSail;
 import eu.semagrow.sail.StreamSailConnection;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import org.openrdf.model.Statement;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.model.vocabulary.DCTERMS;
@@ -18,6 +21,8 @@ import org.openrdf.sail.SailException;
  * @author http://www.turnguard.com/turnguard
  */
 public class StreamSailImpl implements StreamSail {
+    
+    List<Statement> states = new ArrayList<>();
     
     Map<String,String> namespaces = new HashMap<>();
     protected final ValueFactory valueFactory = ValueFactoryImpl.getInstance();
@@ -57,4 +62,5 @@ public class StreamSailImpl implements StreamSail {
     public Map<String,String> getNamespaces(){
         return this.namespaces;
     }
+    public List<Statement> getStatements(){ return this.states; }
 }
