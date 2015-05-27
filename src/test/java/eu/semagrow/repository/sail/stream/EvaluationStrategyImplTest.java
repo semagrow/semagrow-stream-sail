@@ -73,7 +73,7 @@ public class EvaluationStrategyImplTest {
             streamSailTupleQuery = streamSailRepoCon
                     .prepareStreamTupleQuery(
                             QueryLanguage.SPARQL, 
-                            "SELECT ?s ?p ?o WHERE { ?s ?p ?o }",
+                            "WITH <urn:uuid:null> SELECT ?s ?p ?o WHERE { ?s ?p ?o }",
                             null
                     );   
             Assert.assertEquals("Must have 25 bindings", 25, streamSailTupleQuery.streamEvaluation().count());
